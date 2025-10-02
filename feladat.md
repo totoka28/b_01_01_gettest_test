@@ -1,57 +1,36 @@
-Oké 💡, akkor vegyük végig **lépésről lépésre** a **gettest** nevű projektet, a nullától addig, hogy a Postmanben látod a JSON adatot.
+# Projekt: **gettest**
+
+
+## 2) Csomagok telepítése
+
+```ps
+npm i express
+npm i -D nodemon
+```
+
+
+
+* **express** → a Node.js keretrendszer, kell a szerverhez
+* **nodemon** → figyeli a fájlokat és automatikusan újraindítja a szervert
 
 ---
 
-# 1️⃣ Projektmappa létrehozás
+## 3) Fájlstruktúra
 
-```ps
-mkdir D:\Dev\gettest
-cd D:\Dev\gettest
-npm init -y
+- Hozd létre az alábbi filokat és mappákat:
+
 ```
-
-👉 Ez létrehoz egy `package.json` fájlt alapértelmezett beállításokkal.
-
----
-
-# 2️⃣ Express telepítése
-
-```ps
-npm install express
-```
-
-👉 Ezzel bekerül a `node_modules` mappába, és a `package.json`-ban megjelenik a `dependencies` között.
-
----
-
-# 3️⃣ Nodemon (kényelmi eszköz)
-
-Telepítsd fejlesztői csomagként:
-
-```ps
-npm install -D nodemon
-```
-
-Majd módosítsd a `package.json`-t (scripts rész):
-
-```json
-"scripts": {
-  "dev": "nodemon src/index.js",
-  "start": "node src/index.js"
-}
+repomappa/
+ ├─ src/
+ │   ├─ data.json
+ │   └─ index.js
 ```
 
 ---
 
-# 4️⃣ Forrásmappa + JSON adat
+## 4) JSON adat (példa)
 
-Hozd létre a mappát:
-
-```ps
-mkdir src
-```
-
-Készíts egy fájlt: **`src/data.json`**
+`src/data.json`
 
 ```json
 [
@@ -63,86 +42,123 @@ Készíts egy fájlt: **`src/data.json`**
 
 ---
 
-# 5️⃣ Express szerver
+## 5) Express szerver
 
-**`src/index.js`**
+`src/index.js`
 
 ```js
-import express from "express";
-import { readFileSync } from "fs";
+const express = require("express");
+const { readFileSync } = require("fs");
 
 const app = express();
 const PORT = 3000;
 
-// GET végpont: visszaadja a data.json tartalmát
 app.get("/adatok", (req, res) => {
   const raw = readFileSync("./src/data.json", "utf-8");
   const json = JSON.parse(raw);
   res.json(json);
 });
 
-// Szerver indítása
 app.listen(PORT, () => {
   console.log(`Szerver fut: http://localhost:${PORT}`);
 });
 ```
 
+
+
+* `fs.readFileSync` → beolvassa a `data.json` tartalmát
+* `JSON.parse` → objektummá alakítja
+* `res.json` → JSON formátumban visszaküldi a kliensnek
+
 ---
 
-# 6️⃣ Szerver indítása
+## 6) package.json – scripts
+
+Nyisd meg a `package.json`-t, és egészítsd ki:
+
+```json
+{
+  "name": "gettest",
+  "version": "1.0.0",
+  "description": "Egyszerű Express projekt, ami egy JSON fájlt ad vissza",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
+```
+
+
+
+* `npm run dev` → fejlesztői mód (nodemon figyel)
+* `npm start` → sima futtatás node-dal
+
+---
+
+## 7) Indítás
 
 ```ps
 npm run dev
 ```
 
-👉 Ekkor a nodemon figyeli a fájlokat, és újraindítja a szervert minden mentésnél.
-👉 Ha nodemon nélkül futtatod:
+Konzolban:
 
-```ps
-node src/index.js
 ```
+[nodemon] starting `node src/index.js`
+Szerver fut: http://localhost:3000
+```
+
+Böngésző/Postman:
+`http://localhost:3000/adatok` → visszaadja a JSON-t.
 
 ---
 
-# 7️⃣ Tesztelés Postmanben
+# 🔎 Postman tesztelés
 
-1. Nyisd meg a **Postman**-t.
-2. Új `GET` kérés:
+1. Új **GET** kérés:
 
    ```
    http://localhost:3000/adatok
    ```
-3. Küldd el → vissza kell kapnod a `data.json` tartalmát JSON válaszként:
 
-```json
-[
-  {
-    "id": 1,
-    "nev": "Péter",
-    "kor": 17
-  },
-  {
-    "id": 2,
-    "nev": "Anna",
-    "kor": 19
-  },
-  {
-    "id": 3,
-    "nev": "Laci",
-    "kor": 16
-  }
-]
+2. **Send** → látod a JSON adatokat.
+
+3. Menj a **Tests** fülre, és írd be:
+
+```js
+pm.test("Státuszkód 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Válasz JSON", function () {
+    pm.response.to.be.withBody;
+    pm.response.to.be.json;
+});
+
+pm.test("Tartalmaz id mezőt", function () {
+    const body = pm.response.json();
+    pm.expect(body[0]).to.have.property("id");
+});
 ```
 
----
 
-✅ Ezzel a **gettest** projekt teljesen működőképes:
+ Ez 3 dolgot ellenőriz:
 
-* Node.js futtatja
-* Express kezeli a kérést
-* JSON fájlból olvas adatot
-* Postmanben lekérdezhető
+* a válasz **200 OK**
+* a válasz **JSON formátumú**
+* az első elemnek van **id** mezője
 
----
+Ha minden oké, zöld pipákat látsz. ✅
 
-Akarod, hogy hozzátegyem **ugyanezt XAMPP MySQL-lel** is (ugyanez a logika, csak JSON fájl helyett adatbázisból jön az adat)?
+
